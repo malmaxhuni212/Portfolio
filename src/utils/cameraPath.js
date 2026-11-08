@@ -35,20 +35,71 @@ export const LOOK_AT_TARGETS = [
 ];
 
 // Scroll progress ranges for each stop (0-1)
-// Each stop occupies a range of the total scroll
 export const STOP_RANGES = [
-  { start: 0.08, end: 0.22, center: 0.15 },   // Stop 1: Mavix
-  { start: 0.28, end: 0.42, center: 0.35 },   // Stop 2: Frashëri
-  { start: 0.50, end: 0.64, center: 0.57 },   // Stop 3: M-Design  
-  { start: 0.72, end: 0.88, center: 0.80 },   // Stop 4: Analytics
+  { start: 0.08, end: 0.22, center: 0.15 },
+  { start: 0.28, end: 0.42, center: 0.35 },
+  { start: 0.50, end: 0.64, center: 0.57 },
+  { start: 0.72, end: 0.88, center: 0.80 },
+];
+
+// Primary scroll stations for the 6 portfolio sections:
+// Welcome → Overview → Experience (Brand Cards) → Methodology → Credentials → Pipeline
+export const SECTIONS = [
+  { id: 'hero', label: 'Welcome', shortLabel: '01', target: 0.00, plateau: [0.00, 0.02] },
+  { id: 'overview', label: 'Overview', shortLabel: '02', target: 0.19, plateau: [0.14, 0.24] },
+  { id: 'experience', label: 'Experience', shortLabel: '03', target: 0.39, plateau: [0.34, 0.45] },
+  { id: 'methodology', label: 'Methodology', shortLabel: '04', target: 0.60, plateau: [0.55, 0.65] },
+  { id: 'credentials', label: 'Credentials', shortLabel: '05', target: 0.80, plateau: [0.75, 0.85] },
+  { id: 'terminal', label: 'Pipeline', shortLabel: '06', target: 0.98, plateau: [0.95, 1.00] },
 ];
 
 /**
+ * Hermite smoothstep interpolation (0 to 1) with zero derivative at endpoints.
+ */
+export function smoothstep(min, max, value) {
+  if (max <= min) return value >= max ? 1 : 0;
+  const x = Math.max(0, Math.min(1, (value - min) / (max - min)));
+  return x * x * (3 - 2 * x);
+}
+
+/**
+ * Compute smooth 3D-like opacity, Y-parallax, and scale for a scroll section.
+ */
+export function getSectionTransition(
+  scrollProgress,
+  fadeInStart,
+  fadeInEnd,
+  fadeOutStart = null,
+  fadeOutEnd = null
+) {
+  const fadeIn = fadeInEnd > fadeInStart
+    ? smoothstep(fadeInStart, fadeInEnd, scrollProgress)
+    : 1;
+  const fadeOut = fadeOutStart !== null && fadeOutEnd !== null
+    ? smoothstep(fadeOutStart, fadeOutEnd, scrollProgress)
+    : 0;
+
+  const opacity = fadeIn * (1 - fadeOut);
+  const translateY = (1 - fadeIn) * 28 - fadeOut * 24;
+  const scale = 1 - (1 - fadeIn) * 0.04 + fadeOut * 0.03;
+
+  return { opacity, translateY, scale, isVisible: opacity > 0.005 };
+}
+
+/**
+ * Get the index of the currently active section (0 to 5)
+ */
+export function getActiveSectionIndex(scrollProgress) {
+  if (scrollProgress < 0.09) return 0;
+  if (scrollProgress < 0.29) return 1;
+  if (scrollProgress < 0.50) return 2;
+  if (scrollProgress < 0.70) return 3;
+  if (scrollProgress < 0.90) return 4;
+  return 5;
+}
+
+/**
  * Check if the scroll position is near a specific stop
- * @param {number} scrollOffset - Current scroll progress (0-1)
- * @param {number} stopIndex - Index of the stop (0-3)
- * @param {number} threshold - How close to be considered "near"
- * @returns {number} - 0 to 1 proximity value (1 = at center)
  */
 export function getStopProximity(scrollOffset, stopIndex, threshold = 0.12) {
   const stop = STOP_RANGES[stopIndex];
@@ -60,8 +111,6 @@ export function getStopProximity(scrollOffset, stopIndex, threshold = 0.12) {
 
 /**
  * Get which stop is currently closest
- * @param {number} scrollOffset
- * @returns {number} - Stop index (0-3) or -1 if none near
  */
 export function getCurrentStop(scrollOffset) {
   for (let i = 0; i < STOP_RANGES.length; i++) {

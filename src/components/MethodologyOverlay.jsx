@@ -1,14 +1,20 @@
+import { memo } from 'react';
+import { getSectionTransition } from '../utils/cameraPath';
+
 /**
  * MethodologyOverlay — "System Logic & Projects" section.
  * Fades in via scrollProgress after the Experience section fades out.
  * Features a floating animation and GitHub CTA.
  */
-export default function MethodologyOverlay({ scrollProgress, showBrands }) {
-  // Fade in 0.38 → 0.50, fade out 0.55 → 0.63
-  const fadeIn = Math.max(0, Math.min(1, (scrollProgress - 0.38) / 0.12));
-  const fadeOut = Math.max(0, Math.min(1, (scrollProgress - 0.55) / 0.08));
-  const opacity = showBrands ? 0 : fadeIn * (1 - fadeOut);
-  const isVisible = opacity > 0.01 && !showBrands;
+const MethodologyOverlay = memo(function MethodologyOverlay({ scrollProgress }) {
+  // Fade in 0.49 → 0.55, plateau 0.55 → 0.65, fade out 0.65 → 0.71
+  const { opacity, translateY, scale, isVisible } = getSectionTransition(
+    scrollProgress,
+    0.49,
+    0.55,
+    0.65,
+    0.71
+  );
 
   return (
     <div
@@ -16,8 +22,9 @@ export default function MethodologyOverlay({ scrollProgress, showBrands }) {
       id="methodology-overlay"
       style={{
         opacity,
+        transform: `translate3d(0, ${translateY}px, 0) scale(${scale})`,
         pointerEvents: isVisible ? 'auto' : 'none',
-        display: isVisible ? 'flex' : 'none',
+        visibility: isVisible ? 'visible' : 'hidden',
       }}
     >
       <div className="methodology-card" id="methodology-card">
@@ -36,25 +43,24 @@ export default function MethodologyOverlay({ scrollProgress, showBrands }) {
         <div className="methodology-card__body">
           <p>
             Instead of a traditional portfolio project showcase showing projects I have done,
-            I wanted to showcase my logic when approaching any project (I have left the link
-            for my GitHub down below.)
+            I wanted to showcase my logic when approaching any project.
           </p>
           <p>
-            Before doing anything project wise, I dissect the core business logic behind a
+            Before doing anything project-wise, I dissect the core business logic behind a
             project to understand exactly how it will drive revenue, scale operations, or
-            eliminate inefficiencies.
+            eliminate inefficiencies, allowing me to architect solutions that are both
+            technically doable and practically beneficial.
           </p>
           <p>
-            Grasping this real-world application first allows me to architect solutions that
-            are both technically doable and practically beneficial.
+            I rely on Agile project management throughout execution, always testing each
+            change to make sure things are going accordingly and to tackle any errors in
+            real time.
           </p>
           <p>
             As AI rapidly becomes an everyday essential, I continuously adapt and integrate
-            the latest intelligent tools to maximize productivity and build smarter workflows.
-          </p>
-          <p>
-            AI is here to stay and I don't think we should fight or avoid it — rather, the
-            people who know how to use AI will always be ahead of the people who don't.
+            the latest intelligent tools to build smarter workflows. AI is here to stay and
+            I don&apos;t think we should fight or avoid it, rather, the people who know how to
+            use AI will always be ahead of the people who don&apos;t.
           </p>
         </div>
 
@@ -103,4 +109,6 @@ export default function MethodologyOverlay({ scrollProgress, showBrands }) {
       </div>
     </div>
   );
-}
+});
+
+export default MethodologyOverlay;

@@ -1,20 +1,24 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
+import { getSectionTransition } from '../utils/cameraPath';
 
 /**
  * TerminalOverlay — "Initialize a Project Pipeline" contact console.
  * Sends emails via Resend API through /api/contact endpoint.
  */
-export default function TerminalOverlay({ scrollProgress, showBrands }) {
+const TerminalOverlay = memo(function TerminalOverlay({ scrollProgress }) {
   const [showForm, setShowForm] = useState(false);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
 
-  // Fade in 0.92 → 0.98 (final section, stays visible)
-  const opacity = showBrands
-    ? 0
-    : Math.max(0, Math.min(1, (scrollProgress - 0.92) / 0.06));
-  const isVisible = opacity > 0.01 && !showBrands;
+  // Fade in 0.89 → 0.95 (final section, stays visible to 1.00)
+  const { opacity, translateY, scale, isVisible } = getSectionTransition(
+    scrollProgress,
+    0.89,
+    0.95,
+    null,
+    null
+  );
 
   const handleExecute = () => {
     if (!showForm) setShowForm(true);
@@ -59,8 +63,9 @@ export default function TerminalOverlay({ scrollProgress, showBrands }) {
       id="terminal-overlay"
       style={{
         opacity,
+        transform: `translate3d(0, ${translateY}px, 0) scale(${scale})`,
         pointerEvents: isVisible ? 'auto' : 'none',
-        display: isVisible ? 'flex' : 'none',
+        visibility: isVisible ? 'visible' : 'hidden',
       }}
     >
       <div className="terminal-card">
@@ -204,4 +209,6 @@ export default function TerminalOverlay({ scrollProgress, showBrands }) {
       </div>
     </div>
   );
-}
+});
+
+export default TerminalOverlay;

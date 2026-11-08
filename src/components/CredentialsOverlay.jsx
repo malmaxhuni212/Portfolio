@@ -1,14 +1,20 @@
+import { memo } from 'react';
+import { getSectionTransition } from '../utils/cameraPath';
+
 /**
  * CredentialsOverlay — "Credentials & LinkedIn" section.
  * 3 certification plaques + LinkedIn verification CTA.
  * Fades in/out via scrollProgress like all other sections.
  */
-export default function CredentialsOverlay({ scrollProgress, showBrands }) {
-  // Fade in 0.68 → 0.76, fade out 0.80 → 0.86
-  const fadeIn = Math.max(0, Math.min(1, (scrollProgress - 0.68) / 0.08));
-  const fadeOut = Math.max(0, Math.min(1, (scrollProgress - 0.80) / 0.06));
-  const opacity = showBrands ? 0 : fadeIn * (1 - fadeOut);
-  const isVisible = opacity > 0.01 && !showBrands;
+const CredentialsOverlay = memo(function CredentialsOverlay({ scrollProgress }) {
+  // Fade in 0.69 → 0.75, plateau 0.75 → 0.85, fade out 0.85 → 0.91
+  const { opacity, translateY, scale, isVisible } = getSectionTransition(
+    scrollProgress,
+    0.69,
+    0.75,
+    0.85,
+    0.91
+  );
 
   return (
     <div
@@ -16,8 +22,9 @@ export default function CredentialsOverlay({ scrollProgress, showBrands }) {
       id="credentials-overlay"
       style={{
         opacity,
+        transform: `translate3d(0, ${translateY}px, 0) scale(${scale})`,
         pointerEvents: isVisible ? 'auto' : 'none',
-        display: isVisible ? 'flex' : 'none',
+        visibility: isVisible ? 'visible' : 'hidden',
       }}
     >
       <div className="credentials-container">
@@ -27,6 +34,9 @@ export default function CredentialsOverlay({ scrollProgress, showBrands }) {
         </div>
 
         <h2 className="credentials__headline">Credentials & LinkedIn</h2>
+        <div className="mobile-swipe-hint mobile-swipe-hint--center" aria-hidden="true">
+          Swipe credentials →
+        </div>
 
         <div className="credentials-grid">
           {/* Card 1: Cybersecurity */}
@@ -103,4 +113,6 @@ export default function CredentialsOverlay({ scrollProgress, showBrands }) {
       </div>
     </div>
   );
-}
+});
+
+export default CredentialsOverlay;

@@ -6,10 +6,14 @@ import ParticleField from './ParticleField';
  * Scene — 3D background elements.
  * Camera driven by scrollProgress for the fly-through effect.
  */
-export default function Scene({ scrollProgress, showBrands }) {
+export default function Scene({ scrollProgress, scrollProgressRef, showBrands }) {
   return (
     <>
-      <CameraRig scrollProgress={scrollProgress} showBrands={showBrands} />
+      <CameraRig
+        scrollProgress={scrollProgress}
+        scrollProgressRef={scrollProgressRef}
+        showBrands={showBrands}
+      />
 
       {/* Ambient lighting */}
       <ambientLight intensity={0.15} />
